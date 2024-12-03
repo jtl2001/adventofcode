@@ -22,9 +22,11 @@ fn main() {
 
     let complex_pattern = Regex::new(r"mul\(\d+,\d+\)|do(?:n't)?\(\)").unwrap();
     let filter_dont = Regex::new(r"(?:don't\(\))+(?:mul\(\d+,\d+\))+").unwrap();
-    
-    
-    let mut instructions = complex_pattern.find_iter(input).map(|m| m.as_str()).collect::<String>();
+
+    let mut instructions = complex_pattern
+        .find_iter(input)
+        .map(|m| m.as_str())
+        .collect::<String>();
     instructions = filter_dont.split(instructions.as_str()).collect::<String>();
 
     sumproduct = instructions_pattern
