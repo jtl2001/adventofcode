@@ -1,9 +1,8 @@
-use std::fs;
 use std::cmp::Ordering;
+use std::fs;
 
 fn main() {
-    let input = fs::read_to_string(".\\src\\input.txt")
-        .expect("Failed to read file");
+    let input = fs::read_to_string(".\\src\\input.txt").expect("Failed to read file");
     let input = input.trim();
 
     let (mut left, mut right) = parse_input(&input);
@@ -13,9 +12,9 @@ fn main() {
 
     let mut sum_diff: u32 = 0;
 
-    for (i, l) in left.iter().enumerate() {
-        sum_diff += l.abs_diff(right[i]);
-    }
+    left.iter()
+        .zip(right.iter())
+        .for_each(|(l, r)| sum_diff += l.abs_diff(*r));
 
     println!("Part 1: {sum_diff}");
 
@@ -30,7 +29,7 @@ fn main() {
     let mut right_count = 0;
 
     let mut total = 0;
-    
+
     loop {
         if l == value {
             left_count += 1;
@@ -52,14 +51,14 @@ fn main() {
                         Some(num) => r = *num,
                         None => break,
                     }
-                },
+                }
                 Ordering::Less => {
                     increment_total(&mut value, &mut left_count, &mut right_count, &mut total);
                     match left.next() {
                         Some(num) => l = *num,
                         None => break,
                     }
-                },
+                }
                 Ordering::Equal => {
                     if l != value {
                         increment_total(&mut value, &mut left_count, &mut right_count, &mut total);
@@ -75,7 +74,7 @@ fn main() {
                         Some(num) => l = *num,
                         None => break,
                     }
-                },
+                }
             }
         }
     }
@@ -100,7 +99,7 @@ fn parse_input(input: &str) -> (Vec<u32>, Vec<u32>) {
         right.push(val[1].parse().expect("Nan"));
     }
 
-    return (left, right)
+    return (left, right);
 }
 
 fn increment_total(value: &mut u32, left_count: &mut u32, right_count: &mut u32, total: &mut u32) {
