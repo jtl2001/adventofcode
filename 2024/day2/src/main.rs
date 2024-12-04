@@ -21,9 +21,13 @@ fn main() {
                 safe_reports_lazy += 1;
             }
             Option::Some(index) => {
-                let mut test_list: Vec<usize> = vec![index, index - 1];
-                if index > 1 {
-                    test_list.push(index - 2);
+                // test in order of most likely to fix
+                let mut test_list: Vec<usize> = vec![index - 1, index];
+
+                // Edge case where index 2 can fail if the first index causes the
+                // wrong monotonicity to be detected
+                if index == 2 {
+                    test_list.push(0);
                 }
 
                 if test_list.iter().any(|i| test_saftey_remove(&r, &i)) {
@@ -38,18 +42,18 @@ fn main() {
 }
 
 fn test_saftey(report: &Vec<u32>) -> Option<usize> {
-    let logical_test: fn(u32, u32) -> bool;
+    let monotone_test: fn(u32, u32) -> bool;
 
     if report[1] > report[0] {
-        logical_test = |c, p| c > p;
+        monotone_test = |curr, prev| curr > prev;
     } else if report[0] > report[1] {
-        logical_test = |c, p| p > c;
+        monotone_test = |curr, prev| prev > curr;
     } else {
         return Option::Some(1);
     }
 
     for i in 1..report.len() {
-        if !logical_test(report[i], report[i - 1]) {
+        if !monotone_test(report[i], report[i - 1]) {
             return Option::Some(i);
         }
         let diff = report[i].abs_diff(report[i - 1]);
