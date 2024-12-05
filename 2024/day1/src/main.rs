@@ -5,7 +5,9 @@ fn main() {
     let input = fs::read_to_string(".\\src\\input.txt").expect("Failed to read file");
     let input = input.trim();
 
-    let (mut left, mut right) = parse_input(&input);
+    let mut left: Vec<u32> = Vec::new();
+    let mut right: Vec<u32> = Vec::new();
+    parse_input(&input, &mut left, &mut right);
 
     left.sort();
     right.sort();
@@ -86,20 +88,15 @@ fn main() {
     println!("Part 2: {total}");
 }
 
-fn parse_input(input: &str) -> (Vec<u32>, Vec<u32>) {
-    let mut left = Vec::new();
-    let mut right = Vec::new();
-
+fn parse_input(input: &str, left: &mut Vec<u32>, right: &mut Vec<u32>) {
     let lines = input.split("\n");
 
     for s in lines {
-        let val: Vec<&str> = s.trim().split_whitespace().collect();
+        let mut val = s.trim().split_whitespace();
 
-        left.push(val[0].parse().expect("Nan"));
-        right.push(val[1].parse().expect("Nan"));
+        left.push(val.next().unwrap().parse().unwrap());
+        right.push(val.next().unwrap().parse().unwrap());
     }
-
-    return (left, right);
 }
 
 fn increment_total(value: &mut u32, left_count: &mut u32, right_count: &mut u32, total: &mut u32) {
