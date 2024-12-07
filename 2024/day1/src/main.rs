@@ -1,65 +1,49 @@
-use std::cmp::Ordering;
-use std::fs;
+use std::fs::read_to_string;
+mod run;
+use run::run;
+use std::time::Instant;
 
 fn main() {
-    let input = fs::read_to_string(".\\src\\input.txt").expect("Failed to read file");
+    let input = read_to_string(".\\src\\input.txt").expect("Failed to read file");
     let input = input.trim();
 
-    let mut left: Vec<u32> = Vec::new();
-    let mut right: Vec<u32> = Vec::new();
-    parse_input(&input, &mut left, &mut right);
+    run(&input, true);
 
-    left.sort();
-    right.sort();
+    let start = Instant::now();
+    let num_reps: u32 = 10000;
 
-    let mut sum_diff: u32 = 0;
-
-    left.iter()
-        .zip(right.iter())
-        .for_each(|(l, r)| sum_diff += l.abs_diff(*r));
-
-    println!("Part 1: {sum_diff}");
-
-    let mut total: u32 = 0;
-
-    let mut left = left.iter().peekable();
-    let mut right = right.iter().peekable();
-
-    while left.peek().is_some() && right.peek().is_some() {
-        let l: &u32 = left.peek().unwrap();
-        let r: &u32 = right.peek().unwrap();
-        match l.cmp(&r) {
-            Ordering::Greater => while right.next_if(|&x| x < l).is_some() {},
-            Ordering::Less => while left.next_if(|&x| x < r).is_some() {},
-            Ordering::Equal => {
-                let mut l_count = 1;
-                let mut r_count = 1;
-
-                left.next();
-                right.next();
-
-                while right.next_if(|&x| x == l).is_some() {
-                    r_count += 1;
-                }
-                while left.next_if(|&x| x == l).is_some() {
-                    l_count += 1;
-                }
-
-                total += l * l_count * r_count;
-            }
-        }
+    for _i in 0..num_reps {
+        run(&input, false);
     }
 
-    println!("Part 2: {total}");
+    let end = Instant::now();
+    let time = (end - start) / num_reps;
+    println!(
+        "Average runtime over {} runs: {}",
+        print_thousands_separator(num_reps),
+        print_time_units(time.as_secs_f64())
+    );
 }
 
-fn parse_input(input: &str, left: &mut Vec<u32>, right: &mut Vec<u32>) {
-    let lines = input.split("\n");
+fn print_time_units(mut time: f64) -> String {
+    let units = ["s", "ms", "us", "ns", "ps", "fs", "as"];
 
-    for s in lines {
-        let mut val = s.trim().split_whitespace();
-
-        left.push(val.next().unwrap().parse().unwrap());
-        right.push(val.next().unwrap().parse().unwrap());
+    let mut i = 0;
+    while time < 1.0 && i < units.len() - 1 {
+        i += 1;
+        time *= 1000.0;
     }
+
+    return format!("{:.2} {}", time.to_string(), units[i]);
+}
+
+fn print_thousands_separator(mut num: u32) -> String {
+    let mut string = String::new();
+
+    while num >= 1000 {
+        string = format!(",{:03}{}", num % 1000, string);
+        num /= 1000;
+    }
+
+    return format!("{}{}", num, string);
 }
