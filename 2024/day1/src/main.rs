@@ -20,69 +20,38 @@ fn main() {
 
     println!("Part 1: {sum_diff}");
 
-    let mut left = left.iter();
-    let mut right = right.iter();
+    let mut total: u32 = 0;
+    
+    let mut left = left.iter().peekable();
+    let mut right = right.iter().peekable();
 
-    let mut l = *left.next().expect("Should contain at least one entry");
-    let mut r = *right.next().expect("Should contain at least one entry");
+    while left.peek().is_some() && right.peek().is_some() {
+        let l: &u32 = left.peek().unwrap();
+        let r: &u32 = right.peek().unwrap();
+        match l.cmp(&r) {
+            Ordering::Greater => {
+                while right.next_if(|&x| x < l).is_some() {}
+            },
+            Ordering::Less => {
+                while left.next_if(|&x| x < r).is_some() {}
+            },
+            Ordering::Equal => {
+                let mut l_count = 1;
+                let mut r_count = 1;
 
-    let mut value = 0;
-    let mut left_count = 0;
-    let mut right_count = 0;
+                left.next();
+                right.next();
 
-    let mut total = 0;
-
-    loop {
-        if l == value {
-            left_count += 1;
-            match left.next() {
-                Some(num) => l = *num,
-                None => break,
-            }
-        } else if r == value {
-            right_count += 1;
-            match right.next() {
-                Some(num) => r = *num,
-                None => break,
-            }
-        } else {
-            match l.cmp(&r) {
-                Ordering::Greater => {
-                    increment_total(&mut value, &mut left_count, &mut right_count, &mut total);
-                    match right.next() {
-                        Some(num) => r = *num,
-                        None => break,
-                    }
+                while right.next_if(|&x| x == l).is_some() {
+                    r_count += 1;
                 }
-                Ordering::Less => {
-                    increment_total(&mut value, &mut left_count, &mut right_count, &mut total);
-                    match left.next() {
-                        Some(num) => l = *num,
-                        None => break,
-                    }
+                while left.next_if(|&x| x == l).is_some() {
+                    l_count += 1;
                 }
-                Ordering::Equal => {
-                    if l != value {
-                        increment_total(&mut value, &mut left_count, &mut right_count, &mut total);
-                    }
-                    value = l;
-                    left_count += 1;
-                    right_count += 1;
-                    match right.next() {
-                        Some(num) => r = *num,
-                        None => break,
-                    }
-                    match left.next() {
-                        Some(num) => l = *num,
-                        None => break,
-                    }
-                }
+
+                total += l * l_count * r_count;
             }
         }
-    }
-
-    if value != 0 {
-        increment_total(&mut value, &mut left_count, &mut right_count, &mut total);
     }
 
     println!("Part 2: {total}");
@@ -97,11 +66,4 @@ fn parse_input(input: &str, left: &mut Vec<u32>, right: &mut Vec<u32>) {
         left.push(val.next().unwrap().parse().unwrap());
         right.push(val.next().unwrap().parse().unwrap());
     }
-}
-
-fn increment_total(value: &mut u32, left_count: &mut u32, right_count: &mut u32, total: &mut u32) {
-    *total += *value * *left_count * *right_count;
-    *value = 0;
-    *left_count = 0;
-    *right_count = 0;
 }
