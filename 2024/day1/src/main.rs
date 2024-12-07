@@ -21,7 +21,7 @@ fn main() {
     println!("Part 1: {sum_diff}");
 
     let mut total: u32 = 0;
-    
+
     let mut left = left.iter().peekable();
     let mut right = right.iter().peekable();
 
@@ -29,12 +29,8 @@ fn main() {
         let l: &u32 = left.peek().unwrap();
         let r: &u32 = right.peek().unwrap();
         match l.cmp(&r) {
-            Ordering::Greater => {
-                while right.next_if(|&x| x < l).is_some() {}
-            },
-            Ordering::Less => {
-                while left.next_if(|&x| x < r).is_some() {}
-            },
+            Ordering::Greater => while right.next_if(|&x| x < l).is_some() {},
+            Ordering::Less => while left.next_if(|&x| x < r).is_some() {},
             Ordering::Equal => {
                 let mut l_count = 1;
                 let mut r_count = 1;
