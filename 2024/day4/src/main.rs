@@ -1,108 +1,49 @@
-use std::fs;
+use std::fs::read_to_string;
+mod run;
+use run::run;
+use std::time::Instant;
 
 fn main() {
-    let input = fs::read_to_string(".\\src\\input.txt").expect("Failed to read file");
+    let input = read_to_string(".\\src\\input.txt").expect("Failed to read file");
     let input = input.trim();
 
-    let input: Vec<Vec<char>> = input
-        .split_whitespace()
-        .map(|s| s.chars().collect())
-        .collect();
+    run(&input, true);
 
-    let mut count_xmas: u32 = 0;
-    let mut count_mas_x: u32 = 0;
+    let start = Instant::now();
+    let num_reps: u32 = 10000;
 
-    let length = input.len();
-    let width = input[0].len();
-
-    for i in 0..length {
-        for j in 0..width {
-            match input[i][j] {
-                'X' => count_xmas += search_char_xmas(i, j, &input),
-                'A' => {
-                    if i > 0 && i < length - 1 && j > 0 && j < width - 1 {
-                        count_mas_x += test_mas_x(i, j, &input);
-                    }
-                }
-                _ => continue,
-            }
-        }
+    for _i in 0..num_reps {
+        run(&input, false);
     }
 
-    println!("Part 1: {}", count_xmas);
-    println!("Part 2: {}", count_mas_x);
-}
-
-fn search_char_xmas(i: usize, j: usize, input: &Vec<Vec<char>>) -> u32 {
-    const DIRECTIONS: [(isize, isize); 8] = [
-        (0, 1),
-        (1, 1),
-        (1, 0),
-        (1, -1),
-        (0, -1),
-        (-1, -1),
-        (-1, 0),
-        (-1, 1),
-    ];
-
-    let mut count = 0;
-    for d in DIRECTIONS {
-        if search_direction_xmas(i, j, d, input) {
-            count += 1
-        }
-    }
-
-    return count;
-}
-
-fn search_direction_xmas(
-    mut i: usize,
-    mut j: usize,
-    dir: (isize, isize),
-    input: &Vec<Vec<char>>,
-) -> bool {
-    const MAS: [char; 3] = ['M', 'A', 'S'];
-
-    for k in 0..3 {
-        i = match i.checked_add_signed(dir.0) {
-            Some(num) => num,
-            None => return false,
-        };
-        j = match j.checked_add_signed(dir.1) {
-            Some(num) => num,
-            None => return false,
-        };
-
-        if MAS[k]
-            != match input.get(i) {
-                Some(s) => match s.get(j) {
-                    Some(c) => *c,
-                    None => return false,
-                },
-                None => return false,
-            }
-        {
-            return false;
-        }
-    }
-    return true;
-}
-
-fn test_mas_x(i: usize, j: usize, input: &Vec<Vec<char>>) -> u32 {
-    // already checked that i is not at extrema
-    let pair_1 = (
-        input[i.checked_add(1).unwrap()][j.checked_add(1).unwrap()],
-        input[i.checked_sub(1).unwrap()][j.checked_sub(1).unwrap()],
+    let end = Instant::now();
+    let time = (end - start) / num_reps;
+    println!(
+        "Average runtime over {} runs: {}",
+        print_thousands_separator(num_reps),
+        print_time_units(time.as_secs_f64())
     );
-    if !(pair_1 == ('M', 'S') || pair_1 == ('S', 'M')) {
-        return 0;
+}
+
+fn print_time_units(mut time: f64) -> String {
+    let units = ["s", "ms", "us", "ns", "ps", "fs", "as"];
+
+    let mut i = 0;
+    while time < 1.0 && i < units.len() - 1 {
+        i += 1;
+        time *= 1000.0;
     }
-    let pair_2 = (
-        input[i.checked_add(1).unwrap()][j.checked_sub(1).unwrap()],
-        input[i.checked_sub(1).unwrap()][j.checked_add(1).unwrap()],
-    );
-    if !(pair_2 == ('M', 'S') || pair_2 == ('S', 'M')) {
-        return 0;
+
+    return format!("{:.2} {}", time, units[i]);
+}
+
+fn print_thousands_separator(mut num: u32) -> String {
+    let mut string = String::new();
+
+    while num >= 1000 {
+        string = format!(",{:03}{}", num % 1000, string);
+        num /= 1000;
     }
-    return 1;
+
+    return format!("{}{}", num, string);
 }

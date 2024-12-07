@@ -1,6 +1,7 @@
 use std::cmp::Ordering;
 
 pub fn run(input: &str, output: bool) {
+    
     let mut left: Vec<u32> = Vec::new();
     let mut right: Vec<u32> = Vec::new();
     parse_input(&input, &mut left, &mut right);

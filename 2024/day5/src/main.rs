@@ -1,68 +1,49 @@
-use std::cmp::Ordering;
-use std::collections::HashMap;
-use std::collections::HashSet;
-use std::fs;
+use std::fs::read_to_string;
+mod run;
+use run::run;
+use std::time::Instant;
 
 fn main() {
-    let input = fs::read_to_string(".\\src\\input.txt").expect("Failed to read file");
+    let input = read_to_string(".\\src\\input.txt").expect("Failed to read file");
     let input = input.trim();
 
-    let mut lines = input.split("\n").map(|s| s.trim());
+    run(&input, true);
 
-    let mut orders: HashMap<u32, HashSet<u32>> = HashMap::new();
+    let start = Instant::now();
+    let num_reps: u32 = 10000;
 
-    loop {
-        let s = lines.next().unwrap().trim();
-        if s == "" {
-            break;
-        }
-
-        let mut s = s.split('|');
-
-        let first: u32 = s.next().unwrap().parse().expect("NaN");
-        let second: u32 = s.next().unwrap().parse().expect("NaN");
-
-        if !orders.contains_key(&first) {
-            orders.insert(first, HashSet::new());
-        }
-
-        orders.get_mut(&first).unwrap().insert(second);
+    for _i in 0..num_reps {
+        run(&input, false);
     }
 
-    let mut sum_correct: u32 = 0;
-    let mut sum_incorrect: u32 = 0;
-
-    for l in lines {
-        let mut updates: Vec<u32> = l
-            .trim()
-            .split(',')
-            .map(|n| n.parse::<u32>().expect("NaN"))
-            .collect();
-
-        let presorted =
-            updates.is_sorted_by(|i, j| compare_with_edges(i, j, &orders) == Ordering::Less);
-
-        if presorted {
-            sum_correct += updates[updates.len() / 2];
-        } else {
-            updates.sort_by(|i, j| compare_with_edges(i, j, &orders));
-            sum_incorrect += updates[updates.len() / 2];
-        }
-    }
-
-    println!("Part 1: {}", sum_correct);
-    println!("Part 1: {}", sum_incorrect);
+    let end = Instant::now();
+    let time = (end - start) / num_reps;
+    println!(
+        "Average runtime over {} runs: {}",
+        print_thousands_separator(num_reps),
+        print_time_units(time.as_secs_f64())
+    );
 }
 
-fn compare_with_edges(i: &u32, j: &u32, map: &HashMap<u32, HashSet<u32>>) -> Ordering {
-    if i == j {
-        return Ordering::Equal;
-    };
-    return match map.get(&i) {
-        Some(s) => match s.contains(&j) {
-            true => Ordering::Less,
-            false => Ordering::Greater,
-        },
-        None => Ordering::Greater,
-    };
+fn print_time_units(mut time: f64) -> String {
+    let units = ["s", "ms", "us", "ns", "ps", "fs", "as"];
+
+    let mut i = 0;
+    while time < 1.0 && i < units.len() - 1 {
+        i += 1;
+        time *= 1000.0;
+    }
+
+    return format!("{:.2} {}", time, units[i]);
+}
+
+fn print_thousands_separator(mut num: u32) -> String {
+    let mut string = String::new();
+
+    while num >= 1000 {
+        string = format!(",{:03}{}", num % 1000, string);
+        num /= 1000;
+    }
+
+    return format!("{}{}", num, string);
 }

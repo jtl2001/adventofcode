@@ -1,74 +1,49 @@
-use std::fs;
+use std::fs::read_to_string;
+mod run;
+use run::run;
+use std::time::Instant;
 
 fn main() {
-    let input = fs::read_to_string(".\\src\\input.txt").expect("Failed to read file");
+    let input = read_to_string(".\\src\\input.txt").expect("Failed to read file");
     let input = input.trim();
 
-    let reports = input.split("\n").map(|r| {
-        r.trim()
-            .split(" ")
-            .map(|l| l.parse::<u32>().expect("NaN"))
-            .collect()
-    });
+    run(&input, true);
 
-    let mut safe_reports_strict: u32 = 0;
-    let mut safe_reports_lazy: u32 = 0;
+    let start = Instant::now();
+    let num_reps: u32 = 10000;
 
-    for r in reports {
-        match test_saftey(&r) {
-            Option::None => {
-                safe_reports_strict += 1;
-                safe_reports_lazy += 1;
-            }
-            Option::Some(index) => {
-                // test in order of most likely to fix
-                let mut test_list: Vec<usize> = vec![index - 1, index];
-
-                // Edge case where index 2 can fail if the first index causes the
-                // wrong monotonicity to be detected
-                if index == 2 {
-                    test_list.push(0);
-                }
-
-                if test_list.iter().any(|i| test_saftey_remove(&r, &i)) {
-                    safe_reports_lazy += 1;
-                }
-            }
-        }
+    for _i in 0..num_reps {
+        run(&input, false);
     }
 
-    println!("Part 1: {safe_reports_strict}");
-    println!("Part 2: {safe_reports_lazy}");
+    let end = Instant::now();
+    let time = (end - start) / num_reps;
+    println!(
+        "Average runtime over {} runs: {}",
+        print_thousands_separator(num_reps),
+        print_time_units(time.as_secs_f64())
+    );
 }
 
-fn test_saftey(report: &Vec<u32>) -> Option<usize> {
-    let monotone_test: fn(u32, u32) -> bool;
+fn print_time_units(mut time: f64) -> String {
+    let units = ["s", "ms", "us", "ns", "ps", "fs", "as"];
 
-    if report[1] > report[0] {
-        monotone_test = |curr, prev| curr > prev;
-    } else if report[0] > report[1] {
-        monotone_test = |curr, prev| prev > curr;
-    } else {
-        return Option::Some(1);
+    let mut i = 0;
+    while time < 1.0 && i < units.len() - 1 {
+        i += 1;
+        time *= 1000.0;
     }
 
-    for i in 1..report.len() {
-        if !monotone_test(report[i], report[i - 1]) {
-            return Option::Some(i);
-        }
-        let diff = report[i].abs_diff(report[i - 1]);
-        if diff < 1 || diff > 3 {
-            return Option::Some(i);
-        }
-    }
-    return Option::None;
+    return format!("{:.2} {}", time, units[i]);
 }
 
-fn test_saftey_remove(report: &Vec<u32>, index: &usize) -> bool {
-    let mut variant = report.clone();
-    variant.remove(*index);
-    if test_saftey(&variant) == Option::None {
-        return true;
+fn print_thousands_separator(mut num: u32) -> String {
+    let mut string = String::new();
+
+    while num >= 1000 {
+        string = format!(",{:03}{}", num % 1000, string);
+        num /= 1000;
     }
-    return false;
+
+    return format!("{}{}", num, string);
 }
