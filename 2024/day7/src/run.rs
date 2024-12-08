@@ -70,7 +70,7 @@ fn calculate_ops(vals: &Vec<u64>, acc: u64, index: usize) -> (bool, bool) {
     let (mut temp1, mut temp2);
 
     if acc >= vals[index] {
-        (temp1, temp2) = calculate_ops(vals, acc.checked_sub(vals[index]).unwrap(), index-1);
+        (temp1, temp2) = calculate_ops(vals, acc.checked_sub(vals[index]).unwrap(), index - 1);
         two |= temp1;
         three |= temp2;
         if two {
@@ -79,7 +79,7 @@ fn calculate_ops(vals: &Vec<u64>, acc: u64, index: usize) -> (bool, bool) {
     }
 
     if acc % vals[index] == 0 {
-        (temp1, temp2) = calculate_ops(vals, acc / vals[index], index-1);
+        (temp1, temp2) = calculate_ops(vals, acc / vals[index], index - 1);
         two |= temp1;
         three |= temp2;
         if three {
@@ -89,10 +89,10 @@ fn calculate_ops(vals: &Vec<u64>, acc: u64, index: usize) -> (bool, bool) {
 
     match un_concat(acc, vals[index]) {
         Option::Some(s) => {
-            (_, temp2) = calculate_ops(vals, s, index-1);
+            (_, temp2) = calculate_ops(vals, s, index - 1);
             three |= temp2;
             return (false, three);
-        },
+        }
         _ => (),
     }
 
@@ -100,8 +100,12 @@ fn calculate_ops(vals: &Vec<u64>, acc: u64, index: usize) -> (bool, bool) {
 }
 
 fn un_concat(mut a: u64, mut b: u64) -> Option<u64> {
-    if a < b {return Option::None};
-    if a == b {return Option::Some(0)};
+    if a < b {
+        return Option::None;
+    };
+    if a == b {
+        return Option::Some(0);
+    };
 
     while b > 0 && a % 10 == b % 10 {
         a /= 10;
