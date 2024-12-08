@@ -2,27 +2,27 @@ use std::sync::Mutex;
 use std::thread;
 
 pub fn run(input: &str, output: bool) {
-    let lines: Vec<Vec<u128>> = input
+    let lines: Vec<Vec<u64>> = input
         .split("\n")
         .map(|s| {
             s.trim()
                 .replacen(':', "", 1)
                 .split_whitespace()
-                .map(|num| num.parse::<u128>().expect("NaN"))
+                .map(|num| num.parse::<u64>().expect("NaN"))
                 .collect()
         })
         .collect();
 
     let num_chunks = 20;
-    let res_two_stack = &Mutex::new(Vec::<u128>::new());
-    let res_three_stack = &Mutex::new(Vec::<u128>::new());
+    let res_two_stack = &Mutex::new(Vec::<u64>::new());
+    let res_three_stack = &Mutex::new(Vec::<u64>::new());
 
     thread::scope(|s| {
         let mut handles = Vec::new();
         for l_chunk in lines.chunks(lines.len() / (num_chunks - 1)) {
             let h = s.spawn(move || {
-                let mut r2 = Vec::<u128>::new();
-                let mut r3 = Vec::<u128>::new();
+                let mut r2 = Vec::<u64>::new();
+                let mut r3 = Vec::<u64>::new();
                 for l in l_chunk {
                     let (two, three) = calculate_ops(l, l[1], 2, &l.len());
                     if two {
@@ -46,11 +46,8 @@ pub fn run(input: &str, output: bool) {
         }
     });
 
-    let res_two_stack = res_two_stack.lock().unwrap();
-    let res_three_stack = res_three_stack.lock().unwrap();
-
-    let valid_2_op: u128 = res_two_stack.iter().sum();
-    let valid_3_op: u128 = res_three_stack.iter().sum();
+    let valid_2_op: u64 = res_two_stack.lock().unwrap().iter().sum();
+    let valid_3_op: u64 = res_three_stack.lock().unwrap().iter().sum();
 
     if output {
         println!("Part 1: {}", valid_2_op);
@@ -58,7 +55,7 @@ pub fn run(input: &str, output: bool) {
     }
 }
 
-fn calculate_ops(vals: &Vec<u128>, acc: u128, index: usize, len: &usize) -> (bool, bool) {
+fn calculate_ops(vals: &Vec<u64>, acc: u64, index: usize, len: &usize) -> (bool, bool) {
     if index == *len {
         if acc == vals[0] {
             return (true, true);
@@ -86,7 +83,7 @@ fn calculate_ops(vals: &Vec<u128>, acc: u128, index: usize, len: &usize) -> (boo
     );
 }
 
-fn concat(mut a: u128, b: u128) -> u128 {
+fn concat(mut a: u64, b: u64) -> u64 {
     let mut temp = b;
 
     while temp > 0 {
