@@ -13,18 +13,20 @@ pub fn run(input: &str, output: bool) {
         })
         .collect();
 
-    let num_chunks = 20;
+    let num_chunks = std::cmp::min(20, lines.len());
     let res_two_stack = &Mutex::new(Vec::<u64>::new());
     let res_three_stack = &Mutex::new(Vec::<u64>::new());
 
+    calculate_ops(&lines[0], lines[0][0], lines[0].len() - 1);
+
     thread::scope(|s| {
         let mut handles = Vec::new();
-        for l_chunk in lines.chunks(lines.len() / (num_chunks - 1)) {
+        for l_chunk in lines.chunks(lines.len() / (num_chunks)) {
             let h = s.spawn(move || {
                 let mut r2 = Vec::<u64>::new();
                 let mut r3 = Vec::<u64>::new();
                 for l in l_chunk {
-                    let (two, three) = calculate_ops(l, l[1], 2, &l.len());
+                    let (two, three) = calculate_ops(l, l[0], &l.len() - 1);
                     if two {
                         r2.push(l[0]);
                         r3.push(l[0]);
@@ -55,41 +57,58 @@ pub fn run(input: &str, output: bool) {
     }
 }
 
-fn calculate_ops(vals: &Vec<u64>, acc: u64, index: usize, len: &usize) -> (bool, bool) {
-    if index == *len {
-        if acc == vals[0] {
+fn calculate_ops(vals: &Vec<u64>, acc: u64, index: usize) -> (bool, bool) {
+    if index == 0 {
+        if acc == 0 {
             return (true, true);
         } else {
             return (false, false);
         }
     }
-    if acc > vals[0] {
-        return (false, false);
+
+    let (mut two, mut three) = (false, false);
+    let (mut temp1, mut temp2);
+
+    if acc >= vals[index] {
+        (temp1, temp2) = calculate_ops(vals, acc.checked_sub(vals[index]).unwrap(), index-1);
+        two |= temp1;
+        three |= temp2;
+        if two {
+            return (true, three);
+        }
     }
 
-    let (mut two, mut three) = calculate_ops(vals, acc + vals[index], index + 1, len);
-    if two || three {
-        return (two, three);
+    if acc % vals[index] == 0 {
+        (temp1, temp2) = calculate_ops(vals, acc / vals[index], index-1);
+        two |= temp1;
+        three |= temp2;
+        if three {
+            return (two, true);
+        }
     }
 
-    (two, three) = calculate_ops(vals, acc * vals[index], index + 1, len);
-    if two || three {
-        return (two, three);
+    match un_concat(acc, vals[index]) {
+        Option::Some(s) => {
+            (_, temp2) = calculate_ops(vals, s, index-1);
+            three |= temp2;
+            return (false, three);
+        },
+        _ => (),
     }
 
-    return (
-        false,
-        calculate_ops(vals, concat(acc, vals[index]), index + 1, len).1,
-    );
+    return (two, three);
 }
 
-fn concat(mut a: u64, b: u64) -> u64 {
-    let mut temp = b;
+fn un_concat(mut a: u64, mut b: u64) -> Option<u64> {
+    if a < b {return Option::None};
+    if a == b {return Option::Some(0)};
 
-    while temp > 0 {
-        a *= 10;
-        temp /= 10;
+    while b > 0 && a % 10 == b % 10 {
+        a /= 10;
+        b /= 10;
     }
-    let val = a + b;
-    return val;
+    if b == 0 {
+        return Option::Some(a);
+    }
+    return Option::None;
 }
