@@ -9,7 +9,7 @@ pub fn run(input: &str, output: bool) {
 
     loop {
         let s = lines.next().unwrap().trim();
-        if s == "" {
+        if s.is_empty() {
             break;
         }
 
@@ -18,9 +18,7 @@ pub fn run(input: &str, output: bool) {
         let first: u32 = s.next().unwrap().parse().expect("NaN");
         let second: u32 = s.next().unwrap().parse().expect("NaN");
 
-        if !orders.contains_key(&first) {
-            orders.insert(first, HashSet::new());
-        }
+        orders.entry(first).or_default();
 
         orders.get_mut(&first).unwrap().insert(second);
     }
@@ -56,11 +54,11 @@ fn compare_with_edges(i: &u32, j: &u32, map: &HashMap<u32, HashSet<u32>>) -> Ord
     if i == j {
         return Ordering::Equal;
     };
-    return match map.get(&i) {
-        Some(s) => match s.contains(&j) {
+    match map.get(i) {
+        Some(s) => match s.contains(j) {
             true => Ordering::Less,
             false => Ordering::Greater,
         },
         None => Ordering::Greater,
-    };
+    }
 }

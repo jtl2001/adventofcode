@@ -1,3 +1,4 @@
+
 pub fn run(input: &str, output: bool) {
     let mut grid: Vec<Vec<State>> = Vec::new();
     let mut guard = Guard {
@@ -37,7 +38,7 @@ pub fn run(input: &str, output: bool) {
         match guard.step(&grid) {
             Ok(_) => (),
             Err(StepError::Wall) => guard.rotate_right(),
-            Err(StepError::OOB) => break,
+            Err(StepError::Oob) => break,
         }
         grid[guard.x][guard.y].add_traversal(&guard.direction, &age);
         if guard.look(&mut grid, &age) {
@@ -78,13 +79,13 @@ impl Direction {
             Direction::Left => *self = Direction::Up,
         }
     }
-    fn to_coords(&self) -> (isize, isize) {
-        return match self {
+    fn as_coords(&self) -> (isize, isize) {
+        match self {
             Direction::Up => (-1, 0),
             Direction::Right => (0, 1),
             Direction::Down => (1, 0),
             Direction::Left => (0, -1),
-        };
+        }
     }
 }
 
@@ -109,7 +110,7 @@ struct Traversal {
 
 impl State {
     fn new_space() -> State {
-        return State::Space(Traversal {
+        State::Space(Traversal {
             flags: 0b0,
             temp_wall: false,
             orig_dir: Direction::Up,
@@ -119,25 +120,22 @@ impl State {
             right_age: 0,
             down_age: 0,
             left_age: 0,
-        });
+        })
     }
     fn is_wall(&self) -> bool {
-        return match self {
-            State::Wall => true,
-            _ => false,
-        };
+        matches!(self, State::Wall)
     }
     fn is_temp_wall(&self) -> bool {
-        return match self {
+        match self {
             State::Space(s) => s.temp_wall,
             _ => false,
-        };
+        }
     }
     fn add_temp_wall(&mut self) {
-        return match self {
+        match self {
             State::Space(s) => s.temp_wall = true,
             _ => panic!("Walls cannot be temp walls"),
-        };
+        }
     }
     fn add_traversal(&mut self, dir: &Direction, age: &u32) {
         let first_traversal = !self.has_been_visited();
@@ -172,13 +170,13 @@ impl State {
     fn get_first_traversal(&self) -> Direction {
         match self {
             State::Wall => panic!("Only works on spaces"),
-            Self::Space(s) => return s.orig_dir,
+            Self::Space(s) => s.orig_dir,
         }
     }
     fn get_first_age(&self) -> u32 {
         match self {
             State::Wall => panic!("Only works on spaces"),
-            Self::Space(s) => return s.first_age,
+            Self::Space(s) => s.first_age,
         }
     }
     fn add_temp_traversal(&mut self, dir: &Direction, age: &u32) {
@@ -223,24 +221,22 @@ impl State {
 
                 if s.temp_age < *age {
                     return false;
-                } else if s.temp_age > *age {
-                    panic!("Invalid age")
                 }
 
-                return match dir {
+                match dir {
                     Direction::Up => s.flags & 0b0000_1000 == 0b0000_1000,
                     Direction::Right => s.flags & 0b0000_0100 == 0b0000_0100,
                     Direction::Down => s.flags & 0b0000_0010 == 0b0000_0010,
                     Direction::Left => s.flags & 0b0000_0001 == 0b0000_0001,
-                };
+                }
             }
         }
     }
     fn has_been_visited(&self) -> bool {
-        return match self {
+        match self {
             State::Wall => false,
             State::Space(s) => s.flags & 0b1111_0000 != 0b0000_0000,
-        };
+        }
     }
 }
 
@@ -254,30 +250,30 @@ struct Guard {
 #[derive(Copy, Clone, Debug)]
 enum StepError {
     Wall,
-    OOB,
+    Oob,
 }
 
 impl Guard {
-    fn step(&mut self, grid: &Vec<Vec<State>>) -> Result<(), StepError> {
-        let new_x;
-        let new_y;
+    fn step(&mut self, grid: &[Vec<State>]) -> Result<(), StepError> {
+        
+        
 
-        let (delta_x, delta_y) = self.direction.to_coords();
+        let (delta_x, delta_y) = self.direction.as_coords();
 
-        match self.x.checked_add_signed(delta_x) {
-            Some(num) => new_x = num,
-            None => return Err(StepError::OOB),
+        let new_x = match self.x.checked_add_signed(delta_x) {
+            Some(num) => num,
+            None => return Err(StepError::Oob),
         };
         if new_x >= grid.len() {
-            return Err(StepError::OOB);
+            return Err(StepError::Oob);
         };
 
-        match self.y.checked_add_signed(delta_y) {
-            Some(num) => new_y = num,
-            None => return Err(StepError::OOB),
+        let new_y = match self.y.checked_add_signed(delta_y) {
+            Some(num) => num,
+            None => return Err(StepError::Oob),
         };
         if new_y >= grid[0].len() {
-            return Err(StepError::OOB);
+            return Err(StepError::Oob);
         };
 
         if grid[new_x][new_y].is_wall() {
@@ -287,16 +283,16 @@ impl Guard {
         self.x = new_x;
         self.y = new_y;
 
-        return Ok(());
+        Ok(())
     }
 
     fn rotate_right(&mut self) {
         self.direction.rotate_right();
     }
 
-    fn look(&self, grid: &mut Vec<Vec<State>>, age: &u32) -> bool {
-        let mut dummy_guard = self.clone();
-        match dummy_guard.step(&grid) {
+    fn look(&self, grid: &mut [Vec<State>], age: &u32) -> bool {
+        let mut dummy_guard = *self;
+        match dummy_guard.step(grid) {
             Ok(_) => {
                 let temp_x = dummy_guard.x;
                 let temp_y = dummy_guard.y;
@@ -315,17 +311,17 @@ impl Guard {
                     dummy_guard.rotate_right();
                     dummy_guard.rotate_right();
                     dummy_guard
-                        .step(&grid)
+                        .step(grid)
                         .expect("Shouldn't be able to backtrack to a wall");
                     dummy_guard.direction = orig_state.get_first_traversal();
                     intersection_age = orig_state.get_first_age();
                 } else {
-                    dummy_guard = self.clone();
+                    dummy_guard = *self;
                 }
 
                 loop {
-                    match dummy_guard.step(&grid) {
-                        Err(StepError::OOB) => {
+                    match dummy_guard.step(grid) {
+                        Err(StepError::Oob) => {
                             grid[temp_x][temp_y] = orig_state;
                             return false;
                         }
@@ -345,7 +341,7 @@ impl Guard {
                         .add_temp_traversal(&dummy_guard.direction, age);
                 }
             }
-            _ => return false,
+            _ => false,
         }
     }
 }

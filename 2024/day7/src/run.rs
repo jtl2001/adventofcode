@@ -87,16 +87,13 @@ fn calculate_ops(vals: &Vec<u64>, acc: u64, index: usize) -> (bool, bool) {
         }
     }
 
-    match un_concat(acc, vals[index]) {
-        Option::Some(s) => {
-            (_, temp2) = calculate_ops(vals, s, index - 1);
-            three |= temp2;
-            return (false, three);
-        }
-        _ => (),
+    if let Option::Some(s) = un_concat(acc, vals[index]) {
+        (_, temp2) = calculate_ops(vals, s, index - 1);
+        three |= temp2;
+        return (false, three);
     }
 
-    return (two, three);
+    (two, three)
 }
 
 fn un_concat(mut a: u64, mut b: u64) -> Option<u64> {
@@ -114,5 +111,5 @@ fn un_concat(mut a: u64, mut b: u64) -> Option<u64> {
     if b == 0 {
         return Option::Some(a);
     }
-    return Option::None;
+    Option::None
 }

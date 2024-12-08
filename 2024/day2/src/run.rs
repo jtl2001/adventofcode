@@ -1,10 +1,12 @@
+use std::cmp::Ordering;
+
 pub fn run(input: &str, output: bool) {
 
     let reports = input.split("\n").map(|r| {
         r.trim()
             .split(" ")
             .map(|l| l.parse::<u32>().expect("NaN"))
-            .collect()
+            .collect::<Vec<u32>>()
     });
 
     let mut safe_reports_strict: u32 = 0;
@@ -26,7 +28,7 @@ pub fn run(input: &str, output: bool) {
                     test_list.push(0);
                 }
 
-                if test_list.iter().any(|i| test_saftey_remove(&r, &i)) {
+                if test_list.iter().any(|i| test_saftey_remove(&r, i)) {
                     safe_reports_lazy += 1;
                 }
             }
@@ -39,34 +41,30 @@ pub fn run(input: &str, output: bool) {
     }
 }
 
-fn test_saftey(report: &Vec<u32>) -> Option<usize> {
-    let monotone_test: fn(u32, u32) -> bool;
-
-    if report[1] > report[0] {
-        monotone_test = |curr, prev| curr > prev;
-    } else if report[0] > report[1] {
-        monotone_test = |curr, prev| prev > curr;
-    } else {
-        return Option::Some(1);
-    }
+fn test_saftey(report: &[u32]) -> Option<usize> {
+    let monotone_test: fn(u32, u32) -> bool = match report[1].cmp(&report[0]) {
+        Ordering::Greater => |curr, prev| curr > prev,
+        Ordering::Less => |curr, prev| prev > curr,
+        Ordering::Equal => return Option::Some(1),
+    };
 
     for i in 1..report.len() {
         if !monotone_test(report[i], report[i - 1]) {
             return Option::Some(i);
         }
         let diff = report[i].abs_diff(report[i - 1]);
-        if diff < 1 || diff > 3 {
+        if !(1..=3).contains(&diff) {
             return Option::Some(i);
         }
     }
-    return Option::None;
+    Option::None
 }
 
-fn test_saftey_remove(report: &Vec<u32>, index: &usize) -> bool {
-    let mut variant = report.clone();
+fn test_saftey_remove(report: &[u32], index: &usize) -> bool {
+    let mut variant = report.to_owned();
     variant.remove(*index);
-    if test_saftey(&variant) == Option::None {
+    if test_saftey(&variant).is_none() {
         return true;
     }
-    return false;
+    false
 }

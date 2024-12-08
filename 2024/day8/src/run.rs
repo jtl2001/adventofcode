@@ -12,9 +12,7 @@ pub fn run(input: &str, output: bool) {
         y_dim = 0;
         for c in row.trim().chars() {
             if c != '.' {
-                if !frequencies.contains_key(&c) {
-                    frequencies.insert(c, Vec::new());
-                }
+                frequencies.entry(c).or_default();
                 frequencies
                     .get_mut(&c)
                     .unwrap()
@@ -34,7 +32,7 @@ pub fn run(input: &str, output: bool) {
             try_add(b + diff, &mut strict_grid);
             try_add(a - diff, &mut strict_grid);
 
-            let mut temp = a.clone();
+            let mut temp = *a;
             while try_add_with_result(temp, &mut full_grid).is_ok() {
                 temp += diff;
             }
@@ -69,7 +67,7 @@ pub fn run(input: &str, output: bool) {
     }
 }
 
-fn try_add(p: Point, grid: &mut Vec<Vec<bool>>) {
+fn try_add(p: Point, grid: &mut [Vec<bool>]) {
     if p.is_not_neg() {
         let x = p.x as usize;
         let y = p.y as usize;
@@ -79,7 +77,7 @@ fn try_add(p: Point, grid: &mut Vec<Vec<bool>>) {
     }
 }
 
-fn try_add_with_result(p: Point, grid: &mut Vec<Vec<bool>>) -> Result<(), ()> {
+fn try_add_with_result(p: Point, grid: &mut [Vec<bool>]) -> Result<(), ()> {
     if p.is_not_neg() {
         let x = p.x as usize;
         let y = p.y as usize;
@@ -88,7 +86,7 @@ fn try_add_with_result(p: Point, grid: &mut Vec<Vec<bool>>) -> Result<(), ()> {
             return Ok(());
         }
     }
-    return Err(());
+    Err(())
 }
 
 #[derive(Hash, Debug, Copy, Clone, PartialEq, Eq)]
@@ -99,7 +97,7 @@ struct Point {
 
 impl Point {
     fn new_from_coords(x: isize, y: isize) -> Point {
-        Point { x: x, y: y }
+        Point { x, y }
     }
     fn is_not_neg(&self) -> bool {
         self.x >= 0 && self.y >= 0

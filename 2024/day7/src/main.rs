@@ -34,7 +34,7 @@ fn print_time_units(mut time: f64) -> String {
         time *= 1000.0;
     }
 
-    return format!("{:.2} {}", time, units[i]);
+    format!("{:.2} {}", time, units[i])
 }
 
 fn print_thousands_separator(mut num: u32) -> String {
@@ -45,5 +45,5 @@ fn print_thousands_separator(mut num: u32) -> String {
         num /= 1000;
     }
 
-    return format!("{}{}", num, string);
+    format!("{}{}", num, string)
 }

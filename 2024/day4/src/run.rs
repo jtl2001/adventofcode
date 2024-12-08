@@ -30,7 +30,7 @@ pub fn run(input: &str, output: bool) {
     }
 }
 
-fn search_char_xmas(i: usize, j: usize, input: &Vec<Vec<char>>) -> u32 {
+fn search_char_xmas(i: usize, j: usize, input: &[Vec<char>]) -> u32 {
     const DIRECTIONS: [(isize, isize); 8] = [
         (0, 1),
         (1, 1),
@@ -49,18 +49,18 @@ fn search_char_xmas(i: usize, j: usize, input: &Vec<Vec<char>>) -> u32 {
         }
     }
 
-    return count;
+    count
 }
 
 fn search_direction_xmas(
     mut i: usize,
     mut j: usize,
     dir: (isize, isize),
-    input: &Vec<Vec<char>>,
+    input: &[Vec<char>],
 ) -> bool {
     const MAS: [char; 3] = ['M', 'A', 'S'];
 
-    for k in 0..3 {
+    for k in MAS {
         i = match i.checked_add_signed(dir.0) {
             Some(num) => num,
             None => return false,
@@ -70,7 +70,7 @@ fn search_direction_xmas(
             None => return false,
         };
 
-        if MAS[k]
+        if k
             != match input.get(i) {
                 Some(s) => match s.get(j) {
                     Some(c) => *c,
@@ -82,10 +82,10 @@ fn search_direction_xmas(
             return false;
         }
     }
-    return true;
+    true
 }
 
-fn test_mas_x(i: usize, j: usize, input: &Vec<Vec<char>>) -> u32 {
+fn test_mas_x(i: usize, j: usize, input: &[Vec<char>]) -> u32 {
     // already checked that i is not at extrema
     let pair_1 = (
         input[i.checked_add(1).unwrap()][j.checked_add(1).unwrap()],
@@ -101,5 +101,5 @@ fn test_mas_x(i: usize, j: usize, input: &Vec<Vec<char>>) -> u32 {
     if !(pair_2 == ('M', 'S') || pair_2 == ('S', 'M')) {
         return 0;
     }
-    return 1;
+    1
 }
