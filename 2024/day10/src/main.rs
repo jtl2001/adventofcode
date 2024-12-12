@@ -10,7 +10,7 @@ fn main() {
     run(input, true);
 
     let start = Instant::now();
-    let num_reps: u32 = 1000;
+    let num_reps: u32 = 10000;
 
     if true {
         for _i in 0..num_reps {

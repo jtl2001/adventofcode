@@ -1,5 +1,5 @@
 use rustc_hash::FxHashSet as HashSet;
-use std::ops::{Add, AddAssign};
+use std::ops::AddAssign;
 
 pub fn run(input: &str, output: bool) {
     // This breaks the input up into a 2d vector of u8s, and buffers
@@ -100,18 +100,6 @@ impl State {
         State {
             reachable_9s: HashSet::default(),
             distinct_paths: 0,
-        }
-    }
-}
-
-impl Add for &State {
-    type Output = State;
-    fn add(self, rhs: Self) -> Self::Output {
-        let mut temp = self.reachable_9s.clone();
-        temp.extend(rhs.reachable_9s.clone());
-        State {
-            reachable_9s: temp,
-            distinct_paths: self.distinct_paths + rhs.distinct_paths,
         }
     }
 }
