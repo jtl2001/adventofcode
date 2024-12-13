@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use rustc_hash::FxHashMap as HashMap;
 
 pub fn run(input: &str, output: bool) {
     let num: Vec<u64> = input
@@ -8,12 +8,12 @@ pub fn run(input: &str, output: bool) {
 
     let mut rocks = Vec::new();
     let mut temp = num.clone();
-    let mut index_map: HashMap<u64, u64> = HashMap::new();
+    let mut index_map: HashMap<u64, u64> = HashMap::default();
     let mut curr_index = 0;
-    while temp.len() > 0 {
-        let n: u64 = temp.pop().unwrap();
-        if !index_map.contains_key(&n) {
-            index_map.insert(n, curr_index);
+    while let Some(n) = temp.pop() {
+        
+        if let std::collections::hash_map::Entry::Vacant(e) = index_map.entry(n) {
+            e.insert(curr_index);
             curr_index += 1;
             let (x, is_second, y) = process_rock(n);
             rocks.push(Rock {
@@ -98,7 +98,7 @@ fn process_rock(x: u64) -> (u64, bool, u64) {
     }
     let count = x.ilog10() + 1;
     if count % 2 == 0 {
-        let half = (10 as u64).pow(count / 2);
+        let half = 10_u64.pow(count / 2);
         (x % half, true, x / half)
     } else {
         (x * 2024, false, 0)
