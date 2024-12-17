@@ -14,7 +14,7 @@ fn main() {
     let start = Instant::now();
     let num_reps: u32 = 10000;
 
-    if false {
+    if true {
         for _ in 0..num_reps {
             run(input, false);
         }

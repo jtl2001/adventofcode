@@ -38,8 +38,8 @@ pub fn run(input: &str, output: bool) {
             let mut perimeter: u64 = 0;
             let mut sides: u64 = 0;
 
-            while need_to_check.len() > 0 {
-                let (x, y) = need_to_check.pop().unwrap();
+            while let Some((x, y)) = need_to_check.pop() {
+                
                 if !checked[x][y] {
                     checked[x][y] = true;
                     area += 1;
