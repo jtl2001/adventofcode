@@ -75,7 +75,7 @@ pub fn run(input: &str, output: bool) {
             cursor_1.x = next_x;
             cursor_1.y = next_y;
         } else {
-            let (mut look_x, mut look_y) = (next_x.clone(), next_y.clone());
+            let (mut look_x, mut look_y) = (next_x, next_y);
 
             while grid[look_x][look_y] == State::Box {
                 look_x = look_x.checked_add_signed(dir.0).unwrap();
@@ -110,7 +110,7 @@ pub fn run(input: &str, output: bool) {
                 }
 
                 let mut hitwall = false;
-                while checklist.len() > 0 {
+                while !checklist.is_empty() {
                     let (box_x, box_y) = checklist.pop_front().unwrap();
 
                     if dir.1 != 1 {
@@ -158,8 +158,8 @@ pub fn run(input: &str, output: bool) {
                     continue;
                 }
 
-                while checked.len() > 0 {
-                    let (box_x, box_y) = checked.pop().unwrap();
+                while let Some((box_x, box_y)) = checked.pop() {
+                    
                     double_grid[box_x][box_y] = State::Space;
                     double_grid[box_x][box_y + 1] = State::Space;
                     double_grid[box_x.checked_add_signed(dir.0).unwrap()]
@@ -175,18 +175,18 @@ pub fn run(input: &str, output: bool) {
     }
 
     let mut gps_sum = 0;
-    for i in 0..grid.len() {
-        for j in 0..grid[i].len() {
-            if grid[i][j] == State::Box {
+    for (i, r) in grid.iter().enumerate() {
+        for (j, c) in r.iter().enumerate() {
+            if *c == State::Box {
                 gps_sum += 100 * i + j;
             }
         }
     }
 
     let mut double_gps_sum = 0;
-    for i in 0..double_grid.len() {
-        for j in 0..double_grid[i].len() {
-            if double_grid[i][j] == State::Box {
+    for (i, r) in double_grid.iter().enumerate() {
+        for (j, c) in r.iter().enumerate() {
+            if *c == State::Box {
                 double_gps_sum += 100 * i + j;
             }
         }

@@ -12,9 +12,9 @@ fn main() {
     run(input, true);
 
     let start = Instant::now();
-    let num_reps: u32 = 10;
+    let num_reps: u32 = 1000;
 
-    if false {
+    if true {
         for _ in 0..num_reps {
             run(input, false);
         }
