@@ -16,7 +16,7 @@ pub fn run(input: &str, output: bool) {
         })
         .peekable();
 
-    let mut grid = vec![vec![vec![0 as u32; WIDTH as usize]; HEIGHT as usize]; SECONDS];
+    let mut grid = vec![vec![vec![0_u32; WIDTH as usize]; HEIGHT as usize]; SECONDS];
 
     while nums.peek().is_some() {
         let mut x = nums.next().unwrap();
@@ -24,10 +24,10 @@ pub fn run(input: &str, output: bool) {
         let u = nums.next().unwrap();
         let v = nums.next().unwrap();
 
-        for k in 0..SECONDS {
+        for g in grid.iter_mut() {
             x = (x + u).rem_euclid(WIDTH);
             y = (y + v).rem_euclid(HEIGHT);
-            grid[k][y as usize][x as usize] += 1;
+            g[y as usize][x as usize] += 1;
         }
     }
 
@@ -71,7 +71,7 @@ pub fn run(input: &str, output: bool) {
     }
 }
 
-fn calc_energy(grid: &Vec<Vec<u32>>) -> u32 {
+fn calc_energy(grid: &[Vec<u32>]) -> u32 {
     let mut energy = 0;
     for i in 1..grid.len() - 1 {
         for j in 1..grid[i].len() - 1 {
